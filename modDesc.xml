@@ -9,10 +9,18 @@
     </title>
 
     <description>
-        <en><![CDATA[Bale and pallet storage placeables automatically supply new bales/pallets to their output area whenever there is free space. The vanilla storage UI is preserved, and the manual-unload limit is lifted so the player can unload up to the number of objects currently stored.
+        <en><![CDATA[Changes how bale and pallet storage placeables unload their contents.
+
+Instead of spawning all objects at once, an unload request from the storage UI is queued and dispatched in batches every 5 seconds. If the output area is full the mod waits and retries automatically, so you never lose queued items. The pending count is saved to the savegame and survives a reload.
+
+The vanilla unload-amount cap is also removed, so the UI slider goes up to the actual number of objects currently stored rather than the vanilla hard limit.
 
 Compatible with all base-game and modded placeables that use the GIANTS object storage specialization.]]></en>
-        <de><![CDATA[Ballen- und Palettenlager liefern automatisch neue Ballen/Paletten in den Ausgabebereich, sobald dort Platz frei wird. Die normale Lager-UI bleibt erhalten, und das Auslade-Limit wird aufgehoben, sodass der Spieler bis zur tatsächlich gelagerten Menge entladen kann.
+        <de><![CDATA[Ändert das Ausladeverhalten von Ballen- und Palettenlagern.
+
+Statt alle Objekte auf einmal zu spawnen, wird eine Auslade-Anforderung aus der Lager-UI in eine Warteschlange gestellt und alle 5 Sekunden in Chargen abgearbeitet. Ist der Ausgabebereich voll, wartet das Mod und versucht es automatisch erneut – wartende Objekte gehen dabei nicht verloren. Die ausstehende Menge wird im Spielstand gespeichert und übersteht einen Neustart.
+
+Zusätzlich wird das Auslade-Limit der UI aufgehoben, sodass der Schieberegler bis zur tatsächlich eingelagerten Menge geht statt am Vanilla-Limit zu stoppen.
 
 Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.]]></de>
     </description>
