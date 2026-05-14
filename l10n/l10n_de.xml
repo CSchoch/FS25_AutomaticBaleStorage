@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <texts>
+        <text name="automaticBaleStorage_title" text="Automatisches Ballenlager" />
+        <text name="automaticBaleStorage_description" text="Lager liefern automatisch Ballen und Paletten in den Ausgabebereich, sobald dort Platz frei wird." />
+    </texts>
+</l10n>

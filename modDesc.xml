@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<modDesc descVersion="108">
+    <author>C.Schoch</author>
+    <version>1.0.0.0</version>
+
+    <title>
+        <en>Automatic Bale Storage</en>
+        <de>Automatisches Ballenlager</de>
+    </title>
+
+    <description>
+        <en><![CDATA[Bale and pallet storage placeables automatically supply new bales/pallets to their output area whenever there is free space. The vanilla storage UI is preserved, and the manual-unload limit is lifted so the player can unload up to the number of objects currently stored.
+
+Compatible with all base-game and modded placeables that use the GIANTS object storage specialization.]]></en>
+        <de><![CDATA[Ballen- und Palettenlager liefern automatisch neue Ballen/Paletten in den Ausgabebereich, sobald dort Platz frei wird. Die normale Lager-UI bleibt erhalten, und das Auslade-Limit wird aufgehoben, sodass der Spieler bis zur tatsächlich gelagerten Menge entladen kann.
+
+Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.]]></de>
+    </description>
+
+    <icon_AutomaticBaleStorageFilename>icon_AutomaticBaleStorage.dds</icon_AutomaticBaleStorageFilename>
+
+    <multiplayer supported="true" />
+
+    <l10n filenamePrefix="l10n/l10n" />
+
+    <extraSourceFiles>
+        <sourceFile filename="register.lua" />
+    </extraSourceFiles>
+</modDesc>
