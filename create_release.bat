@@ -2,10 +2,10 @@
 setlocal
 
 :: ============================================================
-:: FS25 WorkflowManager - Release Archive Builder
+:: FS25 AutomaticBaleStorage - Release Archive Builder
 :: ============================================================
 
-set MOD_NAME=FS25_WorkflowManager
+set MOD_NAME=FS25_AutomaticBaleStorage
 set SCRIPT_DIR=%~dp0
 set SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
 

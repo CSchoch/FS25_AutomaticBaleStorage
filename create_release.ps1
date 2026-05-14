@@ -3,7 +3,7 @@ param(
     [string]$Dst
 )
 
-$excludeExt = @('.bat', '.png', '.ps1', '.zip')
+$excludeExt = @('.bat', '.png', '.pdn', '.ps1', '.zip')
 $srcLen     = $Src.Length
 
 Add-Type -Assembly 'System.IO.Compression.FileSystem'

@@ -17,7 +17,7 @@ Compatible with all base-game and modded placeables that use the GIANTS object s
 Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.]]></de>
     </description>
 
-    <icon_AutomaticBaleStorageFilename>icon_AutomaticBaleStorage.dds</icon_AutomaticBaleStorageFilename>
+    <iconFilename>icon_AutomaticBaleStorage.dds</iconFilename>
 
     <multiplayer supported="true" />
 
