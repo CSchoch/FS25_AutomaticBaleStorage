@@ -13,6 +13,7 @@ Get-ChildItem $Src -Recurse -File | ForEach-Object {
     if ($excludeExt -contains $_.Extension.ToLower()) { return }
     $rel = $_.FullName.Substring($srcLen + 1).Replace('\', '/')
     if ($rel -like '.git/*' -or $rel -eq '.git') { return }
+    if ($rel -eq 'CLAUDE.md') { return }
     [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel) | Out-Null
 }
 

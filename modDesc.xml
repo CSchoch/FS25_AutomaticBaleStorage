@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <modDesc descVersion="109">
     <author>C.Schoch</author>
-    <version>1.0.0.0</version>
+    <version>1.0.0.1</version>
 
     <title>
         <en>Automatic Bale Storage</en>
@@ -15,14 +15,26 @@ Instead of spawning all objects at once, an unload request from the storage UI i
 
 The vanilla unload-amount cap is also removed, so the UI slider goes up to the actual number of objects currently stored rather than the vanilla hard limit.
 
-Compatible with all base-game and modded placeables that use the GIANTS object storage specialization.]]></en>
+Compatible with all base-game and modded placeables that use the GIANTS object storage specialization.
+
+GitHub: https://github.com/CSchoch/FS25_AutomaticBaleStorage
+
+Changelog 1.0.0.1:
+- Fixed: Pending unload queue now correctly survives a game save and reload.
+- Fixed: The selected bale type is respected.]]></en>
         <de><![CDATA[Ändert das Ausladeverhalten von Ballen- und Palettenlagern.
 
 Statt alle Objekte auf einmal zu spawnen, wird eine Auslade-Anforderung aus der Lager-UI in eine Warteschlange gestellt und alle 5 Sekunden in Chargen abgearbeitet. Ist der Ausgabebereich voll, wartet das Mod und versucht es automatisch erneut – wartende Objekte gehen dabei nicht verloren. Die ausstehende Menge wird im Spielstand gespeichert und übersteht einen Neustart.
 
 Zusätzlich wird das Auslade-Limit der UI aufgehoben, sodass der Schieberegler bis zur tatsächlich eingelagerten Menge geht statt am Vanilla-Limit zu stoppen.
 
-Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.]]></de>
+Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.
+
+GitHub: https://github.com/CSchoch/FS25_AutomaticBaleStorage
+
+Changelog 1.0.0.1:
+- Behoben: Ausstehende Auslade-Warteschlange bleibt jetzt nach dem Speichern und Neuladen korrekt erhalten.
+- Behoben: Der gewählte Ballentyp wird korrekt erkannt.]]></de>
     </description>
 
     <iconFilename>icon_AutomaticBaleStorage.dds</iconFilename>
