@@ -10,6 +10,10 @@ AutomaticBaleStorage = {}
 
 local CHECK_INTERVAL_MS = 5000
 
+-- Consecutive checks without any spawn progress before the vanilla spawn state
+-- is force-reset. 6 * 5 s = 30 s, far longer than a healthy spawn cycle needs.
+local STALL_CHECKS_BEFORE_RESET = 6
+
 function AutomaticBaleStorage.prerequisitesPresent(specializations)
     return SpecializationUtil.hasSpecialization(PlaceableObjectStorage, specializations)
 end
@@ -37,6 +41,8 @@ function AutomaticBaleStorage:onLoad(_)
     spec.timer           = CHECK_INTERVAL_MS
     spec.remainingUnload = 0
     spec.unloadIndex     = nil
+    spec.spawnState      = nil
+    spec.stallChecks     = 0
 
     -- Lift manual-unload cap. PlaceableObjectStorageActivatable:run reads
     -- spec_objectStorage.maxUnloadAmount when opening ObjectStorageDialog.
@@ -115,11 +121,50 @@ function AutomaticBaleStorage:onUpdate(dt)
 
     print(string.format("ABS onUpdate dispatch tick: remainingUnload=%s objectSpawnActive=%s updateTimer=%s", tostring(spec.remainingUnload), tostring(osSpec.objectSpawn ~= nil and osSpec.objectSpawn.isActive), tostring(osSpec.objectInfosUpdateTimer)))
 
-    -- A previous spawn cycle is still running — wait it out.
-    if osSpec.objectSpawn ~= nil and osSpec.objectSpawn.isActive then
-        print("ABS onUpdate: blocked by active objectSpawn")
-        return
+    -- A previous spawn cycle is still running — wait it out. The vanilla state
+    -- machine can wedge with isActive=true (it waits forever on an overlapBoxAsync
+    -- callback that never arrives). That also blocks PlaceableObjectStorageActivatable,
+    -- so the storage becomes completely un-interactable until the game is reloaded.
+    -- Detect a spawn that stops making progress and put it back to idle the same way
+    -- spawnNextObjectStorageObject does when it finishes normally.
+    local objectSpawn = osSpec.objectSpawn
+    if objectSpawn ~= nil and objectSpawn.isActive then
+        local spawnState = string.format("%s|%s|%s|%s|%s",
+            tostring(objectSpawn.numObjectsToSpawn), tostring(osSpec.numStoredObjects),
+            tostring(objectSpawn.spawnAreaIndex),
+            tostring(objectSpawn.spawnAreaData[1]), tostring(objectSpawn.spawnAreaData[3]))
+
+        if spawnState == spec.spawnState then
+            spec.stallChecks = spec.stallChecks + 1
+        else
+            spec.spawnState  = spawnState
+            spec.stallChecks = 0
+        end
+
+        if spec.stallChecks < STALL_CHECKS_BEFORE_RESET then
+            print("ABS onUpdate: blocked by active objectSpawn, stallChecks=" .. spec.stallChecks)
+            return
+        end
+
+        print("ABS onUpdate: objectSpawn made no progress, forcing it back to idle")
+        objectSpawn.isActive          = false
+        objectSpawn.overlapIsActive   = false
+        objectSpawn.overlapObjectCount = 0
+        objectSpawn.connection        = nil
+        objectSpawn.objectInfoIndex   = 1
+        objectSpawn.numObjectsToSpawn = 0
+        for i = #objectSpawn.spawnedObjects, 1, -1 do
+            objectSpawn.spawnedObjects[i] = nil
+        end
+        self:setObjectStorageObjectInfosDirty()
+
+        spec.spawnState  = nil
+        spec.stallChecks = 0
+        return  -- object infos are dirty now, dispatch on the next check
     end
+
+    spec.spawnState  = nil
+    spec.stallChecks = 0
 
     -- Object infos are pending refresh; try again next tick.
     if osSpec.objectInfosUpdateTimer ~= nil and osSpec.objectInfosUpdateTimer ~= 0 then
