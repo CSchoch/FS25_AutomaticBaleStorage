@@ -10,6 +10,31 @@ local SPEC_NAME = "automaticBaleStorage"
 local SPEC_CLASS = "AutomaticBaleStorage"
 local SPEC_FILE = Utils.getFilename("scripts/AutomaticBaleStorage.lua", modDirectory)
 
+-- Development config, not shipped in the release archive. Without it debug
+-- logging stays off, so a released build does not spam the log. The existence
+-- check is required: source() on a missing file logs an engine error.
+local DEV_CONFIG_FILE = Utils.getFilename("scripts/DevConfig.lua", modDirectory)
+if fileExists(DEV_CONFIG_FILE) then
+    source(DEV_CONFIG_FILE)
+end
+
+if ABSDevConfig == nil then
+    ABSDevConfig = { DEBUG_LOGGING = false }
+end
+
+-- Debug log helper used by the specialization; a no-op in a release build.
+function ABSDevConfig.debug(message, ...)
+    if not ABSDevConfig.DEBUG_LOGGING then
+        return
+    end
+
+    if select("#", ...) > 0 then
+        message = string.format(message, ...)
+    end
+
+    print(message)
+end
+
 -- Registration is deferred into the finalizeTypes hook so we use the correct
 -- placeable specialization manager (self.specializationManager on the placeable
 -- TypeManager), not g_specializationManager which belongs to vehicles.

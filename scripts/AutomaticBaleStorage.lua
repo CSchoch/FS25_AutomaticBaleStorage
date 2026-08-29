@@ -25,6 +25,7 @@ end
 function AutomaticBaleStorage.registerEventListeners(placeableType)
     SpecializationUtil.registerEventListener(placeableType, "onLoad",   AutomaticBaleStorage)
     SpecializationUtil.registerEventListener(placeableType, "onUpdate", AutomaticBaleStorage)
+    SpecializationUtil.registerEventListener(placeableType, "onPreDelete", AutomaticBaleStorage)
 end
 
 -- FS25 placeables use loadFromXMLFile/saveToXMLFile (not onReadSaveGame/onWriteSaveGame).
@@ -62,7 +63,7 @@ function AutomaticBaleStorage:loadFromXMLFile(xmlFile, key)
     spec.remainingUnload = xmlFile:getValue(key .. ".automaticBaleStorage#remainingUnload", 0)
     local savedIndex     = xmlFile:getValue(key .. ".automaticBaleStorage#unloadIndex",     0)
     spec.unloadIndex     = savedIndex > 0 and savedIndex or nil
-    print(string.format("ABS loadFromXMLFile: remainingUnload=%s unloadIndex=%s", tostring(spec.remainingUnload), tostring(spec.unloadIndex)))
+    ABSDevConfig.debug("ABS loadFromXMLFile: remainingUnload=%s unloadIndex=%s", tostring(spec.remainingUnload), tostring(spec.unloadIndex))
     if spec.remainingUnload > 0 then
         spec.timer = 0  -- dispatch on the first eligible update rather than waiting 5 s
         self:raiseActive()
@@ -73,9 +74,23 @@ end
 function AutomaticBaleStorage:saveToXMLFile(xmlFile, key, _)
     local spec = self.spec_automaticBaleStorage
     if spec == nil then return end
-    print(string.format("ABS saveToXMLFile: remainingUnload=%s unloadIndex=%s", tostring(spec.remainingUnload or 0), tostring(spec.unloadIndex or 0)))
+    ABSDevConfig.debug("ABS saveToXMLFile: remainingUnload=%s unloadIndex=%s", tostring(spec.remainingUnload or 0), tostring(spec.unloadIndex or 0))
     xmlFile:setValue(key .. ".automaticBaleStorage#remainingUnload", spec.remainingUnload or 0)
     xmlFile:setValue(key .. ".automaticBaleStorage#unloadIndex",     spec.unloadIndex    or 0)
+end
+
+-- Selling or otherwise deleting the placeable must stop the retry loop.
+-- onUpdate keeps the placeable in the update list via raiseActive() as long as
+-- a queue is pending; on a deleted placeable that would keep driving vanilla
+-- object storage code against nodes that no longer exist.
+function AutomaticBaleStorage:onPreDelete()
+    local spec = self.spec_automaticBaleStorage
+    if spec == nil then return end
+    spec.remainingUnload = 0
+    spec.unloadIndex     = nil
+    spec.lastKnownTotal  = nil
+    spec.spawnState      = nil
+    spec.stallChecks     = 0
 end
 
 -- Overrides PlaceableObjectStorage:removeAbstractObjectsFromStorage.
@@ -95,6 +110,11 @@ end
 
 function AutomaticBaleStorage:onUpdate(dt)
     if not self.isServer then
+        return
+    end
+
+    -- Placeable is being sold/deleted: its nodes are gone or about to go.
+    if self.markedForDeletion or self.isDeleted then
         return
     end
 
@@ -119,7 +139,7 @@ function AutomaticBaleStorage:onUpdate(dt)
         return
     end
 
-    print(string.format("ABS onUpdate dispatch tick: remainingUnload=%s objectSpawnActive=%s updateTimer=%s", tostring(spec.remainingUnload), tostring(osSpec.objectSpawn ~= nil and osSpec.objectSpawn.isActive), tostring(osSpec.objectInfosUpdateTimer)))
+    ABSDevConfig.debug("ABS onUpdate dispatch tick: remainingUnload=%s objectSpawnActive=%s updateTimer=%s", tostring(spec.remainingUnload), tostring(osSpec.objectSpawn ~= nil and osSpec.objectSpawn.isActive), tostring(osSpec.objectInfosUpdateTimer))
 
     -- A previous spawn cycle is still running — wait it out. The vanilla state
     -- machine can wedge with isActive=true (it waits forever on an overlapBoxAsync
@@ -142,11 +162,11 @@ function AutomaticBaleStorage:onUpdate(dt)
         end
 
         if spec.stallChecks < STALL_CHECKS_BEFORE_RESET then
-            print("ABS onUpdate: blocked by active objectSpawn, stallChecks=" .. spec.stallChecks)
+            ABSDevConfig.debug("ABS onUpdate: blocked by active objectSpawn, stallChecks=" .. spec.stallChecks)
             return
         end
 
-        print("ABS onUpdate: objectSpawn made no progress, forcing it back to idle")
+        ABSDevConfig.debug("ABS onUpdate: objectSpawn made no progress, forcing it back to idle")
         objectSpawn.isActive          = false
         objectSpawn.overlapIsActive   = false
         objectSpawn.overlapObjectCount = 0
@@ -168,7 +188,7 @@ function AutomaticBaleStorage:onUpdate(dt)
 
     -- Object infos are pending refresh; try again next tick.
     if osSpec.objectInfosUpdateTimer ~= nil and osSpec.objectInfosUpdateTimer ~= 0 then
-        print("ABS onUpdate: blocked by objectInfosUpdateTimer=" .. tostring(osSpec.objectInfosUpdateTimer))
+        ABSDevConfig.debug("ABS onUpdate: blocked by objectInfosUpdateTimer=" .. tostring(osSpec.objectInfosUpdateTimer))
         return
     end
 
@@ -176,7 +196,7 @@ function AutomaticBaleStorage:onUpdate(dt)
 
     local objectInfos = osSpec.objectInfos
     if objectInfos == nil then
-        print("ABS onUpdate: objectInfos is nil, waiting")
+        ABSDevConfig.debug("ABS onUpdate: objectInfos is nil, waiting")
         return
     end
 
@@ -206,7 +226,7 @@ function AutomaticBaleStorage:onUpdate(dt)
     end
     spec.lastKnownTotal = totalStored
 
-    print(string.format("ABS onUpdate: totalStored=%s remainingUnload=%s hadValidReading=%s targetIndex=%s", tostring(totalStored), tostring(spec.remainingUnload), tostring(hadValidReading), tostring(targetIndex)))
+    ABSDevConfig.debug("ABS onUpdate: totalStored=%s remainingUnload=%s hadValidReading=%s targetIndex=%s", tostring(totalStored), tostring(spec.remainingUnload), tostring(hadValidReading), tostring(targetIndex))
 
     if spec.remainingUnload <= 0 then
         spec.remainingUnload = 0
@@ -219,7 +239,7 @@ function AutomaticBaleStorage:onUpdate(dt)
     -- On the first tick after a savegame load objectInfos may not be refreshed yet
     -- and could spuriously report 0, which would incorrectly wipe the queue.
     if totalStored == 0 and hadValidReading then
-        print("ABS onUpdate: storage confirmed empty, clearing queue")
+        ABSDevConfig.debug("ABS onUpdate: storage confirmed empty, clearing queue")
         spec.remainingUnload = 0
         spec.unloadIndex     = nil
         spec.lastKnownTotal  = nil
@@ -227,7 +247,7 @@ function AutomaticBaleStorage:onUpdate(dt)
     end
 
     if totalStored == 0 then
-        print("ABS onUpdate: totalStored=0 but no prior reading, waiting for refresh")
+        ABSDevConfig.debug("ABS onUpdate: totalStored=0 but no prior reading, waiting for refresh")
         return  -- wait for objectInfos to refresh before deciding
     end
 
