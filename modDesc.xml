@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<modDesc descVersion="109">
+<modDesc descVersion="111">
     <author>C.Schoch</author>
-    <version>1.0.0.2</version>
+    <version>1.0.0.3</version>
 
     <title>
         <en>Automatic Bale Storage</en>
@@ -19,6 +19,10 @@ Compatible with all base-game and modded placeables that use the GIANTS object s
 
 GitHub: https://github.com/CSchoch/FS25_AutomaticBaleStorage
 
+Changelog 1.0.0.3:
+- Fixed: Selling or deleting a storage while an unload was still pending could keep the mod working on the removed placeable.
+- Fixed: Released builds no longer write the mod's debug messages to the game log.
+
 Changelog 1.0.0.2:
 - Fixed: A storage could get stuck unloading and stay completely un-interactable until the game was reloaded. The mod now detects a stalled spawn and resets it automatically.
 
@@ -34,6 +38,10 @@ Zusätzlich wird das Auslade-Limit der UI aufgehoben, sodass der Schieberegler b
 Funktioniert mit allen Basisspiel- und Mod-Placeables, die die GIANTS Object-Storage Spezialisierung verwenden.
 
 GitHub: https://github.com/CSchoch/FS25_AutomaticBaleStorage
+
+Changelog 1.0.0.3:
+- Behoben: Wurde ein Lager verkauft oder entfernt, während noch ein Ausladevorgang lief, konnte das Mod weiter auf dem entfernten Placeable arbeiten.
+- Behoben: In der Release-Version werden keine Debug-Meldungen mehr ins Log geschrieben.
 
 Changelog 1.0.0.2:
 - Behoben: Ein Lager konnte beim Ausladen hängen bleiben und war dann bis zum Neuladen des Spiels gar nicht mehr bedienbar. Das Mod erkennt einen hängenden Spawn-Vorgang jetzt und setzt ihn automatisch zurück.
